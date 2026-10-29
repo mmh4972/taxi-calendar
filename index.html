@@ -97,11 +97,28 @@ textarea { width: 100%; min-height: 64px; border-radius: 10px; border: 1px solid
 .wd-pick input { width: 22px; height: 22px; }
 .wide-btn { width: 100%; height: 46px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); font-size: 16px; margin-top: 8px; }
 .hint { font-size: 13px; color: var(--muted); line-height: 1.5; }
+.sync { font-size: 12px; color: var(--muted); text-align: center; margin-top: 10px; }
+.sync.bad { color: var(--red); }
+#login { display: flex; flex-direction: column; gap: 10px; max-width: 360px; margin: 40px auto; }
+#login h1 { font-size: 24px; margin: 0 0 6px; text-align: center; }
+#login input { height: 48px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--ink); padding: 0 12px; font-size: 16px; }
+#login button { height: 48px; border-radius: 12px; border: none; background: var(--accent); color: #fff; font-size: 17px; font-weight: 600; }
+#loginErr { color: var(--red); font-size: 14px; min-height: 1.4em; }
+[hidden] { display: none !important; }
 #err { display: none; background: var(--red-bg); color: var(--red); padding: 8px; border-radius: 8px; margin-bottom: 8px; }
 </style>
 </head>
 <body>
 <div id="err"></div>
+<form id="login" hidden>
+  <h1>洗腎叫車</h1>
+  <p class="hint">請用 Firebase 裡建立的帳號登入。每支手機、每台電腦只要登入一次。</p>
+  <input id="email" type="email" autocomplete="username" placeholder="Email" required>
+  <input id="password" type="password" autocomplete="current-password" placeholder="密碼" required>
+  <button type="submit" id="loginBtn">登入</button>
+  <div id="loginErr"></div>
+</form>
+<main id="app" hidden>
 <header>
   <button class="nav" id="prev" aria-label="上個月">‹</button>
   <h1 id="title"></h1>
@@ -118,8 +135,10 @@ textarea { width: 100%; min-height: 64px; border-radius: 10px; border: 1px solid
 <div class="grid" id="grid"></div>
 <div class="footer">
   <button class="small-btn" id="todayBtn">回到本月</button>
-  <button class="small-btn" id="settingsBtn">設定與備份</button>
+  <button class="small-btn" id="settingsBtn">設定</button>
 </div>
+<div class="sync" id="sync">連線中…</div>
+</main>
 
 <div class="backdrop" id="backdrop"></div>
 
@@ -133,25 +152,23 @@ textarea { width: 100%; min-height: 64px; border-radius: 10px; border: 1px solid
 </div>
 
 <div class="sheet" id="setSheet">
-  <h2><span>設定與備份</span><button class="close" data-close>✕</button></h2>
+  <h2><span>設定</span><button class="close" data-close>✕</button></h2>
   <div class="row-label">每週洗腎日</div>
   <div class="wd-pick" id="wdPick"></div>
   <p class="hint">勾選的星期會自動顯示叫車狀態。個別日子（例如國定假日改時間）可以點進那天調整。</p>
-  <div class="row-label">備份</div>
-  <p class="hint">資料只存在這支手機。換手機或清除瀏覽器資料前，請先匯出備份。</p>
-  <button class="wide-btn" id="exportBtn">匯出備份檔</button>
-  <button class="wide-btn" id="importBtn">從備份檔匯入</button>
-  <input type="file" id="importFile" accept=".json,application/json" hidden>
+  <div class="row-label">帳號</div>
+  <p class="hint">資料存在雲端，手機和電腦同步。目前登入：<span id="who"></span></p>
+  <button class="wide-btn" id="logoutBtn">登出</button>
   <p class="hint" id="ver"></p>
 </div>
 
 <script>
-window.APP_VERSION = '2';
+window.APP_VERSION = '3';
 window.addEventListener('error', (e) => {
   const d = document.getElementById('err');
   if (d) { d.style.display = 'block'; d.textContent = '程式出錯：' + (e.message || e) + '（版本 ' + window.APP_VERSION + '）'; }
 });
 </script>
-<script src="app.js?v=2"></script>
+<script type="module" src="app.js?v=3"></script>
 </body>
 </html>
