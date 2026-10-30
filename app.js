@@ -5,7 +5,7 @@ import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   collection, doc, onSnapshot, setDoc, deleteDoc,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config.js?v=4';
+import { firebaseConfig } from './firebase-config.js?v=5';
 
 const STATUS = [
   { id: '', label: '還沒約', mark: '未約', cls: 's-none' },
@@ -44,22 +44,25 @@ function render() {
   $('title').textContent = y + ' 年 ' + (m + 1) + ' 月';
   const grid = $('grid');
   grid.innerHTML = '';
-  const lead = (view.getDay() + 6) % 7; // 週一為第一欄
-  for (let i = 0; i < lead; i++) grid.appendChild(Object.assign(document.createElement('div'), { className: 'cell empty' }));
+  // 前後補上相鄰月份的日子，湊滿整週（週一為第一欄）；這些日子也能點，但不算進本月統計
+  const lead = (view.getDay() + 6) % 7;
+  const last = new Date(y, m + 1, 0).getDate();
+  const total = Math.ceil((lead + last) / 7) * 7;
+  grid.style.setProperty('--rows', total / 7);
 
   const tk = todayKey();
-  const last = new Date(y, m + 1, 0).getDate();
   const count = { none: 0, booked: 0, ok: 0 };
-  for (let d = 1; d <= last; d++) {
-    const key = keyOf(new Date(y, m, d));
+  for (let i = 0; i < total; i++) {
+    const key = keyOf(new Date(y, m, i - lead + 1));
+    const inMonth = i >= lead && i < lead + last;
     const r = rec(key);
     const cell = document.createElement('button');
-    cell.className = 'cell' + (key === tk ? ' today' : '') + (key < tk ? ' past' : '');
-    cell.innerHTML = '<span class="num">' + d + '</span>';
+    cell.className = 'cell' + (key === tk ? ' today' : '') + (key < tk ? ' past' : '') + (inMonth ? '' : ' other');
+    cell.innerHTML = '<span class="num">' + Number(key.slice(8)) + '</span>';
     if (isDial(key)) {
       const s = statusOf(r.go);
       cell.insertAdjacentHTML('beforeend', '<span class="trip ' + s.cls + '">' + s.mark + '</span>');
-      if (key >= tk) {
+      if (inMonth && key >= tk) {
         if (s.id === '') count.none++;
         else if (s.id === 'booked') count.booked++;
         else if (s.id === 'ok') count.ok++;
