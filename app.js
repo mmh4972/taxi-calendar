@@ -5,13 +5,13 @@ import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   collection, doc, onSnapshot, setDoc, deleteDoc,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config.js?v=5';
+import { firebaseConfig } from './firebase-config.js?v=6';
 
 const STATUS = [
   { id: '', label: '還沒約', mark: '未約', cls: 's-none' },
   { id: 'booked', label: '已預約', mark: '已約', cls: 's-booked' },
   { id: 'ok', label: '成功', mark: '成功', cls: 's-ok' },
-  { id: 'skip', label: '不用車', mark: '免', cls: 's-skip' },
+  { id: 'skip', label: '無法約', mark: '無法約', cls: 's-skip' },
 ];
 const WD_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 const $ = (id) => document.getElementById(id);
@@ -61,6 +61,7 @@ function render() {
     cell.innerHTML = '<span class="num">' + Number(key.slice(8)) + '</span>';
     if (isDial(key)) {
       const s = statusOf(r.go);
+      if (s.id === 'skip') cell.classList.add('fail'); // 無法約：整格變深一點的紅
       cell.insertAdjacentHTML('beforeend', '<span class="trip ' + s.cls + '">' + s.mark + '</span>');
       if (inMonth && key >= tk) {
         if (s.id === '') count.none++;

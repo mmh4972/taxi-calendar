@@ -19,6 +19,7 @@
   --yellow: #e8b100; --yellow-bg: #fff3c4;
   --green: #2e9b5e; --green-bg: #dcf3e4;
   --gray: #9a9e9a; --gray-bg: #ecebe7;
+  --fail-bg: #f6b8b1; --fail: #b3261e;
   --today: #2f6fd6;
 }
 @media (prefers-color-scheme: dark) {
@@ -29,6 +30,7 @@
     --yellow: #f5c931; --yellow-bg: #4a3d12;
     --green: #4fc983; --green-bg: #1d3d2a;
     --gray: #8a8f8a; --gray-bg: #2e312e;
+    --fail-bg: #6e2a24; --fail: #c7372d;
     --today: #6ea2ff;
   }
 }
@@ -70,7 +72,8 @@ header h1 { flex: 1; text-align: center; font-size: 22px; margin: 0; font-weight
 .s-none { background: var(--red-bg); color: var(--red); }
 .s-booked { background: var(--yellow-bg); color: #8a6500; }
 .s-ok { background: var(--green-bg); color: var(--green); }
-.s-skip { background: var(--gray-bg); color: var(--gray); text-decoration: line-through; }
+.s-skip { background: var(--fail); color: #fff; }
+.cell.fail { background: var(--fail-bg); border-color: var(--fail); }
 @media (prefers-color-scheme: dark) { .s-booked { color: var(--yellow); } }
 .note-mark { display: block; min-width: 0; font-size: 11px; color: var(--muted); padding-left: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .footer { display: flex; justify-content: center; gap: 8px; margin-top: 14px; }
@@ -131,7 +134,7 @@ textarea { width: 100%; min-height: 64px; border-radius: 10px; border: 1px solid
   <span><i class="dot s-none"></i>還沒約</span>
   <span><i class="dot s-booked"></i>已預約，等結果</span>
   <span><i class="dot s-ok"></i>約成功</span>
-  <span><i class="dot s-skip"></i>不用車</span>
+  <span><i class="dot s-skip"></i>無法約</span>
 </div>
 <div class="summary" id="summary"></div>
 <div class="weekdays"><div>一</div><div>二</div><div>三</div><div>四</div><div>五</div><div class="we">六</div><div class="we">日</div></div>
@@ -166,12 +169,12 @@ textarea { width: 100%; min-height: 64px; border-radius: 10px; border: 1px solid
 </div>
 
 <script>
-window.APP_VERSION = '5';
+window.APP_VERSION = '6';
 window.addEventListener('error', (e) => {
   const d = document.getElementById('err');
   if (d) { d.style.display = 'block'; d.textContent = '程式出錯：' + (e.message || e) + '（版本 ' + window.APP_VERSION + '）'; }
 });
 </script>
-<script type="module" src="app.js?v=5"></script>
+<script type="module" src="app.js?v=6"></script>
 </body>
 </html>
