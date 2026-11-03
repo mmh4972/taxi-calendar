@@ -70,6 +70,7 @@ header h1 { flex: 1; text-align: center; font-size: 22px; margin: 0; font-weight
 .cell.today .num { color: var(--today); }
 .trip { font-size: 13px; line-height: 26px; border-radius: 5px; text-align: center; font-weight: 600; }
 .s-none { background: var(--red-bg); color: var(--red); }
+.s-later { background: var(--red-bg); color: var(--red); opacity: .45; }
 .s-booked { background: var(--yellow-bg); color: #8a6500; }
 .s-ok { background: var(--green-bg); color: var(--green); }
 .s-skip { background: var(--fail); color: #fff; }
@@ -97,6 +98,7 @@ header h1 { flex: 1; text-align: center; font-size: 22px; margin: 0; font-weight
 .choice.sel { border-color: var(--ink); }
 .toggle { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 15px; }
 .toggle input { width: 22px; height: 22px; }
+.toggle .num-input { width: 64px; height: 36px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); text-align: center; font-size: 16px; }
 textarea { width: 100%; min-height: 64px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); padding: 8px; font: inherit; font-size: 16px; }
 .wd-pick { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .wd-pick label { display: flex; flex-direction: column; align-items: center; font-size: 14px; gap: 4px; }
@@ -132,6 +134,7 @@ textarea { width: 100%; min-height: 64px; border-radius: 10px; border: 1px solid
 </header>
 <div class="legend">
   <span><i class="dot s-none"></i>還沒約</span>
+  <span><i class="dot s-later"></i>還不能約</span>
   <span><i class="dot s-booked"></i>已預約，等結果</span>
   <span><i class="dot s-ok"></i>約成功</span>
   <span><i class="dot s-skip"></i>無法約</span>
@@ -162,6 +165,9 @@ textarea { width: 100%; min-height: 64px; border-radius: 10px; border: 1px solid
   <div class="row-label">每週洗腎日</div>
   <div class="wd-pick" id="wdPick"></div>
   <p class="hint">勾選的星期會自動顯示叫車狀態。個別日子（例如國定假日改時間）可以點進那天調整。</p>
+  <div class="row-label">可預約天數</div>
+  <label class="toggle">今天起 <input type="number" id="bookDays" min="1" max="60" inputmode="numeric" class="num-input"> 天內可以預約</label>
+  <p class="hint">超過這個天數、還沒約的日子會顯示成淺紅色。</p>
   <div class="row-label">帳號</div>
   <p class="hint">資料存在雲端，手機和電腦同步。目前登入：<span id="who"></span></p>
   <button class="wide-btn" id="logoutBtn">登出</button>
@@ -169,12 +175,12 @@ textarea { width: 100%; min-height: 64px; border-radius: 10px; border: 1px solid
 </div>
 
 <script>
-window.APP_VERSION = '6';
+window.APP_VERSION = '7';
 window.addEventListener('error', (e) => {
   const d = document.getElementById('err');
   if (d) { d.style.display = 'block'; d.textContent = '程式出錯：' + (e.message || e) + '（版本 ' + window.APP_VERSION + '）'; }
 });
 </script>
-<script type="module" src="app.js?v=6"></script>
+<script type="module" src="app.js?v=7"></script>
 </body>
 </html>

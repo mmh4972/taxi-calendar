@@ -5,7 +5,7 @@ import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   collection, doc, onSnapshot, setDoc, deleteDoc,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config.js?v=6';
+import { firebaseConfig } from './firebase-config.js?v=7';
 
 const STATUS = [
   { id: '', label: '還沒約', mark: '未約', cls: 's-none' },
@@ -17,7 +17,7 @@ const WD_NAMES = ['日', '一', '二', '三', '四', '五', '六'];
 const $ = (id) => document.getElementById(id);
 
 let days = {};                         // { '2026-10-31': { go, note, dial } }
-let cfg = { dialWeekdays: [2, 4, 6] }; // 週二、四、六
+let cfg = { dialWeekdays: [2, 4, 6], bookDays: 14 }; // 週二、四、六；叫車系統只能預約今天起 14 天內
 let view = firstOfMonth(new Date());
 let openKey = null;
 let db = null;
@@ -29,6 +29,8 @@ function keyOf(d) {
 }
 function dateOf(key) { const [y, m, d] = key.split('-').map(Number); return new Date(y, m - 1, d); }
 function todayKey() { return keyOf(new Date()); }
+// 最晚可預約的日子（今天 + 可預約天數）
+function lastBookKey() { const d = new Date(); d.setDate(d.getDate() + cfg.bookDays); return keyOf(d); }
 
 // 這天是否要洗腎：個別設定優先，否則看每週洗腎日
 function isDial(key) {
@@ -51,7 +53,8 @@ function render() {
   grid.style.setProperty('--rows', total / 7);
 
   const tk = todayKey();
-  const count = { none: 0, booked: 0, ok: 0 };
+  const bk = lastBookKey();
+  const count = { none: 0, later: 0, booked: 0, ok: 0 };
   for (let i = 0; i < total; i++) {
     const key = keyOf(new Date(y, m, i - lead + 1));
     const inMonth = i >= lead && i < lead + last;
@@ -61,10 +64,12 @@ function render() {
     cell.innerHTML = '<span class="num">' + Number(key.slice(8)) + '</span>';
     if (isDial(key)) {
       const s = statusOf(r.go);
+      const later = s.id === '' && key > bk; // 還沒開放預約：淺一點的紅
       if (s.id === 'skip') cell.classList.add('fail'); // 無法約：整格變深一點的紅
-      cell.insertAdjacentHTML('beforeend', '<span class="trip ' + s.cls + '">' + s.mark + '</span>');
+      cell.insertAdjacentHTML('beforeend', '<span class="trip ' + (later ? 's-later' : s.cls) + '">' + s.mark + '</span>');
       if (inMonth && key >= tk) {
-        if (s.id === '') count.none++;
+        if (later) count.later++;
+        else if (s.id === '') count.none++;
         else if (s.id === 'booked') count.booked++;
         else if (s.id === 'ok') count.ok++;
       }
@@ -77,11 +82,12 @@ function render() {
   const now = new Date();
   const notFuture = y < now.getFullYear() || (y === now.getFullYear() && m <= now.getMonth());
   const scope = notFuture ? '本月今天起' : '這個月';
-  if (count.none + count.booked + count.ok === 0) {
+  if (count.none + count.later + count.booked + count.ok === 0) {
     $('summary').textContent = scope + '沒有需要叫車的日子。';
   } else {
     $('summary').innerHTML = scope + '：<b class="red">' + count.none + '</b> 天還沒約、<b class="yellow">' +
-      count.booked + '</b> 天等結果、<b class="green">' + count.ok + '</b> 天已成功';
+      count.booked + '</b> 天等結果、<b class="green">' + count.ok + '</b> 天已成功' +
+      (count.later ? '；另有 <b>' + count.later + '</b> 天還不能約' : '');
   }
 }
 
@@ -111,7 +117,8 @@ function listen() {
   }, (e) => setSync('讀取失敗（' + e.code + '）：這個帳號可能沒有權限', true)));
   unsubs.push(onSnapshot(doc(db, 'config', 'main'), (snap) => {
     const d = snap.data();
-    if (d && Array.isArray(d.dialWeekdays)) cfg = { dialWeekdays: d.dialWeekdays.slice() };
+    if (d && Array.isArray(d.dialWeekdays)) cfg.dialWeekdays = d.dialWeekdays.slice();
+    if (d && Number.isInteger(d.bookDays)) cfg.bookDays = d.bookDays;
     render();
   }, () => {}));
 }
@@ -184,14 +191,26 @@ function openSettings() {
       cfg.dialWeekdays = cfg.dialWeekdays.filter((x) => x !== wd);
       if (cb.checked) cfg.dialWeekdays.push(wd);
       render();
-      setDoc(doc(db, 'config', 'main'), { dialWeekdays: cfg.dialWeekdays.slice() }).catch(writeError);
+      saveCfg();
     });
     lab.append(WD_NAMES[wd], cb);
     box.appendChild(lab);
   }
+  $('bookDays').value = cfg.bookDays;
   $('ver').textContent = '版本 ' + window.APP_VERSION;
   show('setSheet');
 }
+
+function saveCfg() {
+  setDoc(doc(db, 'config', 'main'), { dialWeekdays: cfg.dialWeekdays.slice(), bookDays: cfg.bookDays }).catch(writeError);
+}
+$('bookDays').addEventListener('change', (e) => {
+  const n = parseInt(e.target.value, 10);
+  if (!(n >= 1 && n <= 60)) { e.target.value = cfg.bookDays; return; }
+  cfg.bookDays = n;
+  render();
+  saveCfg();
+});
 
 // ---- 視窗開關與導覽 ----
 function show(id) {
