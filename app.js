@@ -5,7 +5,7 @@ import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   collection, doc, onSnapshot, setDoc, deleteDoc,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config.js?v=7';
+import { firebaseConfig } from './firebase-config.js?v=8';
 
 const STATUS = [
   { id: '', label: '還沒約', mark: '未約', cls: 's-none' },
@@ -138,6 +138,7 @@ function openDay(key) {
   $('note').value = rec(key).note || '';
   fillDay();
   show('daySheet');
+  fitNote();
 }
 function fillDay() {
   const r = rec(openKey);
@@ -175,6 +176,13 @@ function flushNote() {
   noteTimer = null;
   update({ note: $('note').value.trim() });
 }
+// 備註框跟著字數長高，整段都看得到（太長時整個視窗可以往下捲）
+function fitNote() {
+  const t = $('note');
+  t.style.height = 'auto';
+  t.style.height = t.scrollHeight + 2 + 'px';
+}
+$('note').addEventListener('input', fitNote);
 $('note').addEventListener('input', () => { clearTimeout(noteTimer); noteTimer = setTimeout(flushNote, 700); });
 $('note').addEventListener('blur', flushNote);
 
