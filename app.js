@@ -5,7 +5,7 @@ import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   collection, doc, onSnapshot, setDoc, deleteDoc,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config.js?v=9';
+import { firebaseConfig } from './firebase-config.js?v=10';
 
 const STATUS = [
   { id: '', label: '還沒約', mark: '未約', cls: 's-none' },
@@ -46,7 +46,7 @@ function render() {
   $('title').textContent = y + ' 年 ' + (m + 1) + ' 月';
   const grid = $('grid');
   grid.innerHTML = '';
-  // 前後補上相鄰月份的日子，湊滿整週（週一為第一欄）；這些日子也能點，但不算進本月統計
+  // 前後補上相鄰月份的日子，湊滿整週（週一為第一欄）；這些日子也能點
   const lead = (view.getDay() + 6) % 7;
   const last = new Date(y, m + 1, 0).getDate();
   const total = Math.ceil((lead + last) / 7) * 7;
@@ -54,7 +54,6 @@ function render() {
 
   const tk = todayKey();
   const bk = lastBookKey();
-  const count = { none: 0, later: 0, booked: 0, ok: 0 };
   for (let i = 0; i < total; i++) {
     const key = keyOf(new Date(y, m, i - lead + 1));
     const inMonth = i >= lead && i < lead + last;
@@ -67,28 +66,12 @@ function render() {
       const later = s.id === '' && key > bk; // 還沒開放預約：淺一點的紅
       if (s.id === 'skip') cell.classList.add('fail'); // 無法約：整格變深一點的紅
       cell.insertAdjacentHTML('beforeend', '<span class="trip ' + (later ? 's-later' : s.cls) + '">' + s.mark + '</span>');
-      if (inMonth && key >= tk) {
-        if (later) count.later++;
-        else if (s.id === '') count.none++;
-        else if (s.id === 'booked') count.booked++;
-        else if (s.id === 'ok') count.ok++;
-      }
     }
     if (r.note) cell.insertAdjacentHTML('beforeend', '<span class="note-mark">📝 ' + escapeHtml(r.note) + '</span>');
     cell.addEventListener('click', () => openDay(key));
     grid.appendChild(cell);
   }
 
-  const now = new Date();
-  const notFuture = y < now.getFullYear() || (y === now.getFullYear() && m <= now.getMonth());
-  const scope = notFuture ? '本月今天起' : '這個月';
-  if (count.none + count.later + count.booked + count.ok === 0) {
-    $('summary').textContent = scope + '沒有需要叫車的日子。';
-  } else {
-    $('summary').innerHTML = scope + '：<b class="red">' + count.none + '</b> 天還沒約、<b class="yellow">' +
-      count.booked + '</b> 天等結果、<b class="green">' + count.ok + '</b> 天已成功' +
-      (count.later ? '；另有 <b>' + count.later + '</b> 天還不能約' : '');
-  }
 }
 
 function escapeHtml(s) {
@@ -237,6 +220,11 @@ $('prev').addEventListener('click', () => { view = new Date(view.getFullYear(), 
 $('next').addEventListener('click', () => { view = new Date(view.getFullYear(), view.getMonth() + 1, 1); render(); });
 $('todayBtn').addEventListener('click', () => { view = firstOfMonth(new Date()); render(); });
 $('settingsBtn').addEventListener('click', openSettings);
+
+// 整個畫面固定不動：只有跳出來的視窗裡可以上下捲（擋掉 iPhone 拉動時的回彈）
+document.addEventListener('touchmove', (e) => {
+  if (!e.target.closest('.sheet')) e.preventDefault();
+}, { passive: false });
 
 // 左右滑動換月
 let sx = null;
