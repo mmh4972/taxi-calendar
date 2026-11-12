@@ -5,7 +5,7 @@ import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   collection, doc, onSnapshot, setDoc, deleteDoc,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config.js?v=8';
+import { firebaseConfig } from './firebase-config.js?v=9';
 
 const STATUS = [
   { id: '', label: '還沒約', mark: '未約', cls: 's-none' },
