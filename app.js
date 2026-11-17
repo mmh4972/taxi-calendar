@@ -5,7 +5,7 @@ import {
   initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
   collection, doc, onSnapshot, setDoc, deleteDoc,
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { firebaseConfig } from './firebase-config.js?v=10';
+import { firebaseConfig } from './firebase-config.js?v=11';
 
 const STATUS = [
   { id: '', label: '還沒約', mark: '未約', cls: 's-none' },
@@ -59,7 +59,9 @@ function render() {
     const inMonth = i >= lead && i < lead + last;
     const r = rec(key);
     const cell = document.createElement('button');
-    cell.className = 'cell' + (key === tk ? ' today' : '') + (key < tk ? ' past' : '') + (inMonth ? '' : ' other');
+    // 相鄰月份的日子變淡；但已經可以預約的（今天到最晚可約日）照常亮著
+    const dim = !inMonth && !(key >= tk && key <= bk);
+    cell.className = 'cell' + (key === tk ? ' today' : '') + (key < tk ? ' past' : '') + (dim ? ' other' : '');
     cell.innerHTML = '<span class="num">' + Number(key.slice(8)) + '</span>';
     if (isDial(key)) {
       const s = statusOf(r.go);

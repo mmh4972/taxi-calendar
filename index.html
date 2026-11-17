@@ -173,12 +173,12 @@ textarea { width: 100%; min-height: 80px; resize: none; overflow: hidden; line-h
 </div>
 
 <script>
-window.APP_VERSION = '10';
+window.APP_VERSION = '11';
 window.addEventListener('error', (e) => {
   const d = document.getElementById('err');
   if (d) { d.style.display = 'block'; d.textContent = '程式出錯：' + (e.message || e) + '（版本 ' + window.APP_VERSION + '）'; }
 });
 </script>
-<script type="module" src="app.js?v=10"></script>
+<script type="module" src="app.js?v=11"></script>
 </body>
 </html>
